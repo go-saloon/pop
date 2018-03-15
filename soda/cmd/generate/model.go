@@ -177,13 +177,17 @@ func (m model) Fizz() string {
 }
 
 func newModel(name string) model {
+	return newModelUTC(name, false)
+}
+
+func newModelUTC(name string, useUTC bool) model {
 	m := model{
 		Package: "models",
 		Imports: []string{"time", "github.com/gobuffalo/pop", "github.com/gobuffalo/validate"},
 		Name:    inflect.Name(name),
 		Attributes: []attribute{
-			{Name: inflect.Name("created_at"), OriginalType: "time.Time", GoType: "time.Time"},
-			{Name: inflect.Name("updated_at"), OriginalType: "time.Time", GoType: "time.Time"},
+			{Name: inflect.Name("created_at"), OriginalType: "time.Time", GoType: "time.Time", UseUTC: useUTC},
+			{Name: inflect.Name("updated_at"), OriginalType: "time.Time", GoType: "time.Time", UseUTC: useUTC},
 		},
 		ValidatableAttributes: []attribute{},
 	}

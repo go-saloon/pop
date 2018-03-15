@@ -10,6 +10,7 @@ import (
 )
 
 var skipMigration bool
+var useUTC bool
 var structTag string
 
 var nrx = regexp.MustCompile(`^nulls\.(.+)`)
@@ -17,6 +18,7 @@ var nrx = regexp.MustCompile(`^nulls\.(.+)`)
 func init() {
 	ModelCmd.Flags().StringVarP(&structTag, "struct-tag", "", "json", "sets the struct tags for model (xml or json)")
 	ModelCmd.Flags().BoolVarP(&skipMigration, "skip-migration", "s", false, "Skip creating a new fizz migration for this model.")
+	ModelCmd.Flags().BoolVarP(&useUTC, "use-utc", "", false, "tells resource generator to save model's timestamp in UTC.")
 
 	inflect.AddAcronym("ID")
 	inflect.AddAcronym("UUID")
@@ -32,7 +34,7 @@ var ModelCmd = &cobra.Command{
 			return errors.New("You must supply a name for your model")
 		}
 
-		model := newModel(args[0])
+		model := newModelUTC(args[0], useUTC)
 
 		switch structTag {
 		case "json":

@@ -3,6 +3,7 @@ package pop
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"sync"
 	"time"
 
@@ -119,6 +120,15 @@ func (m *Model) fieldByName(s string) (reflect.Value, error) {
 	return fbn, nil
 }
 
+func (m *Model) fieldTagByName(s string) (reflect.StructTag, error) {
+	el := reflect.ValueOf(m.Value).Elem()
+	fbn, ok := el.Type().FieldByName(s)
+	if !ok {
+		return "", errors.Errorf("Model does not have a field named %s", s)
+	}
+	return fbn.Tag, nil
+}
+
 func (m *Model) associationName() string {
 	tn := inflect.Singularize(m.TableName())
 	return fmt.Sprintf("%s_id", tn)
@@ -140,14 +150,28 @@ func (m *Model) setID(i interface{}) {
 func (m *Model) touchCreatedAt() {
 	fbn, err := m.fieldByName("CreatedAt")
 	if err == nil {
-		fbn.Set(reflect.ValueOf(time.Now()))
+		v := time.Now()
+		tag, err := m.fieldTagByName("CreatedAt")
+		if err == nil {
+			if useUTC(tag) {
+				v = v.UTC()
+			}
+		}
+		fbn.Set(reflect.ValueOf(v))
 	}
 }
 
 func (m *Model) touchUpdatedAt() {
 	fbn, err := m.fieldByName("UpdatedAt")
 	if err == nil {
-		fbn.Set(reflect.ValueOf(time.Now()))
+		v := time.Now()
+		tag, err := m.fieldTagByName("UpdatedAt")
+		if err == nil {
+			if useUTC(tag) {
+				v = v.UTC()
+			}
+		}
+		fbn.Set(reflect.ValueOf(v))
 	}
 }
 
@@ -161,4 +185,18 @@ func (m *Model) whereID() string {
 		value = fmt.Sprintf("%s.id ='%s'", m.TableName(), id)
 	}
 	return value
+}
+
+func useUTC(tag reflect.StructTag) bool {
+	v, ok := tag.Lookup("db")
+	if !ok {
+		return false
+	}
+	vs := strings.Split(v, ",")
+	for _, v := range vs {
+		if v == "utc" {
+			return true
+		}
+	}
+	return false
 }

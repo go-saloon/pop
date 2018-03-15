@@ -12,10 +12,15 @@ type attribute struct {
 	OriginalType string
 	GoType       string
 	Nullable     bool
+	UseUTC       bool
 }
 
 func (a attribute) String() string {
-	return fmt.Sprintf("\t%s %s `%s:\"%s\" db:\"%s\"`", a.Name.Camel(), a.GoType, structTag, a.Name.UnderSingular(), a.Name.UnderSingular())
+	utc := ""
+	if a.UseUTC {
+		utc += ",utc"
+	}
+	return fmt.Sprintf("\t%s %s `%s:\"%s\" db:\"%s%s\"`", a.Name.Camel(), a.GoType, structTag, a.Name.UnderSingular(), a.Name.UnderSingular(), utc)
 }
 
 func (a attribute) IsValidable() bool {

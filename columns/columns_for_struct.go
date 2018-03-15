@@ -2,6 +2,7 @@ package columns
 
 import (
 	"reflect"
+	"strings"
 )
 
 // ColumnsForStruct returns a Columns instance for
@@ -39,7 +40,7 @@ func ColumnsForStructWithAlias(s interface{}, tableName string, tableAlias strin
 		tag := popTags.Find("db")
 
 		if !tag.Ignored() && !tag.Empty() {
-			col := tag.Value
+			col := strings.Split(tag.Value, ",")[0]
 
 			//add writable or readable.
 			tag := popTags.Find("rw")
